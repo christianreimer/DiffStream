@@ -9,8 +9,8 @@ import zmq
 import zmq.asyncio
 import uuid
 import constants as const
-from diffstream import consts
 from diffstream import cache
+from diffstream import protocol
 
 
 def initialize_zmq():
@@ -35,10 +35,12 @@ def subscribe(sock, topicfilter):
 
 async def request_retrans(sock, my_unique_id, key):
     """Send request to server to retransmit the specified key"""
-    msg = (consts._cmd_ret_.encode(), my_unique_id, key)
-    print('Requesting: {}'.format(msg))
-    await sock.send_multipart(msg)
-    await sock.recv_multipart()
+    request = protocol.ReqResCmd.retran(my_unique_id, key)
+    print('Requesting: {}'.format(request))
+    await sock.send_multipart(request.to_network())
+    buf = await sock.recv_multipart()
+    response = protocol.ReqResCmd.from_network(buf)
+    print('Received: {}'.format(response))
 
 
 async def process_msg(msg, dc):
@@ -53,7 +55,7 @@ async def process_msg(msg, dc):
         print('Requesting a retransmission ....')
         return False, msg.key
 
-    print('Hydrated: {}'.format(data))
+    # print('Hydrated: {}'.format(data))
     return True, msg.key
 
 
@@ -79,8 +81,8 @@ def main():
     print('Initializing zmq connection')
     ctx, sock_sub, sock_req = initialize_zmq()
 
-    my_unique_id = uuid.uuid4().hex.encode()
-    subscribe(sock_sub, (const.TOPIC_STRING, my_unique_id))
+    my_unique_id = uuid.uuid4().hex
+    subscribe(sock_sub, (const.TOPIC_STRING, my_unique_id.encode()))
 
     print('Ctrl+C to exit')
 

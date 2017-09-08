@@ -12,6 +12,7 @@ import constants as const
 import data
 from diffstream import cache
 from diffstream import consts
+from diffstream import protocol
 import uuid
 
 
@@ -44,25 +45,22 @@ async def process_retran_request(sock_pub, sock_rep, dc):
     """Listen for retransmission requests on the request socket, and initiate
     republish using the requesters topic string"""
     while True:
-        cmd, unique_id, key = await sock_rep.recv_multipart()
-        print('Received request {} from 0x{} regarding 0x{}'.format(
-            consts.cmd_name[cmd.decode()],
-            unique_id.decode()[:6],
-            key.decode()[:6]))
+        buf = await sock_rep.recv_multipart()
+        request = protocol.ReqResCmd.from_network(buf)
+        print('Received: {}'.format(request))
 
-        cmd = cmd.decode()
-
-        if cmd not in (consts._cmd_ret_, ):
-            print('Sending back NACK')
-            await sock_rep.send_multipart((b'NACK', b''))
+        if request.cmd not in (consts._cmd_ret_, ):
+            response = protocol.ReqResCmd.nack(request.corr_id)
+            print('Responding: {}'.format(response))
+            await sock_rep.send_multipart(response.to_network())
 
         else:
-            corr_id = uuid.uuid4().hex
-            await sock_rep.send_multipart((b'ACK', corr_id.encode()))
+            response = protocol.ReqResCmd.ack(request.corr_id)
+            await sock_rep.send_multipart(response.to_network())
+            print('Responding: {}'.format(response))
 
-            print('Sending back ACK')
-            msg = dc.retran(key)
-            await publish(sock_pub, unique_id, corr_id, msg)
+            msg = dc.retran(request.key)
+            await publish(sock_pub, request.unique_id, request.corr_id, msg)
 
 
 async def cleanup():
