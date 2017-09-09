@@ -35,11 +35,11 @@ def subscribe(sock, topicfilter):
 
 async def request_retrans(sock, my_unique_id, key):
     """Send request to server to retransmit the specified key"""
-    request = protocol.ReqResCmd.retran(my_unique_id, key)
+    request = protocol.ReqResMsg.retran(my_unique_id, key)
     print('Requesting: {}'.format(request))
     await sock.send_multipart(request.to_network())
     buf = await sock.recv_multipart()
-    response = protocol.ReqResCmd.from_network(buf)
+    response = protocol.ReqResMsg.from_network(buf)
     print('Received: {}'.format(response))
 
 
@@ -70,7 +70,7 @@ async def run(sock_sub, sock_req, my_unique_id):
 
     while True:
         buf = await sock_sub.recv_multipart()
-        msg = protocol.PubSubBuf.from_network(buf)
+        msg = protocol.PubSubMsg.from_network(buf)
         # print('Received {}'.format(msg))
 
         success, key = await process_msg(msg.payload, dc)

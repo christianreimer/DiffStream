@@ -5,7 +5,7 @@ import uuid
 from . import consts
 
 
-class ReqResCmd(object):
+class ReqResMsg(object):
     def __init__(self, cmd, unique_id='', key='', corr_id=''):
         self.cmd = cmd
         self.unique_id = unique_id
@@ -21,32 +21,32 @@ class ReqResCmd(object):
         _k = isinstance(key, bytes) and key.decode() or key
         _c = corr_id or uuid.uuid4().hex
         _c = isinstance(_c, bytes) and _c.decode() or _c
-        return ReqResCmd(consts._cmd_ret_, _u, _k, _c)
+        return ReqResMsg(consts._cmd_ret_, _u, _k, _c)
 
     @classmethod
     def ack(cls, corr_id):
         """
         Construct ACK Request Response Command
         """
-        return ReqResCmd(consts._cmd_ack_, corr_id=corr_id)
+        return ReqResMsg(consts._cmd_ack_, corr_id=corr_id)
 
     @classmethod
     def nack(cls, corr_id):
         """
         Construct NACK Request Response Command
         """
-        return ReqResCmd(consts._cmd_nak_, corr_id=corr_id)
+        return ReqResMsg(consts._cmd_nak_, corr_id=corr_id)
 
     @classmethod
     def from_network(cls, buffer):
         """
-        Convert zmq message buffer into ReqResCmd object.ReqResCmd
+        Convert zmq message buffer into ReqResMsg object.ReqResMsg
         """
         cmd = buffer[0].decode()
         unique_id = buffer[1].decode()
         key = buffer[2].decode()
         corr_id = buffer[3].decode()
-        return ReqResCmd(cmd, unique_id, key, corr_id)
+        return ReqResMsg(cmd, unique_id, key, corr_id)
 
     def to_network(self):
         """
@@ -68,7 +68,7 @@ class ReqResCmd(object):
             self.corr_id[:6])
 
 
-class PubSubBuf(object):
+class PubSubMsg(object):
     def __init__(self, topic, corr_id, payload):
         self.topic = topic
         self.corr_id = corr_id
@@ -79,7 +79,7 @@ class PubSubBuf(object):
         _t = buf[0].decode()
         _c = buf[1].decode()
         _p = buf[2].decode()
-        return PubSubBuf(_t, _c, _p)
+        return PubSubMsg(_t, _c, _p)
 
     def to_network(self):
         return (self.topic.encode(),
@@ -87,7 +87,7 @@ class PubSubBuf(object):
                 self.payload.encode())
 
     def __str__(self):
-        return 'PubSubBuf top:0x{} cid:0x{} pay:{}'.format(
+        return 'PubSubMsg top:0x{} cid:0x{} pay:{}'.format(
             self.topic[:6],
             self.corr_id[:6],
             str(self.payload))

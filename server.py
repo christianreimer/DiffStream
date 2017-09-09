@@ -27,7 +27,7 @@ def initialize_zmq():
 
 async def publish(sock_pub, topic, corr_id, msg):
     """Publish msg using the given topic string"""
-    pub_msg = protocol.PubSubBuf(topic, corr_id, msg)
+    pub_msg = protocol.PubSubMsg(topic, corr_id, msg)
     await sock_pub.send_multipart(pub_msg.to_network())
 
 
@@ -36,16 +36,16 @@ async def process_retran_request(sock_pub, sock_rep, dc):
     republish using the requesters topic string"""
     while True:
         buf = await sock_rep.recv_multipart()
-        request = protocol.ReqResCmd.from_network(buf)
+        request = protocol.ReqResMsg.from_network(buf)
         print('Received: {}'.format(request))
 
         if request.cmd not in (consts._cmd_ret_, ):
-            response = protocol.ReqResCmd.nack(request.corr_id)
+            response = protocol.ReqResMsg.nack(request.corr_id)
             print('Responding: {}'.format(response))
             await sock_rep.send_multipart(response.to_network())
 
         else:
-            response = protocol.ReqResCmd.ack(request.corr_id)
+            response = protocol.ReqResMsg.ack(request.corr_id)
             await sock_rep.send_multipart(response.to_network())
             print('Responding: {}'.format(response))
 
