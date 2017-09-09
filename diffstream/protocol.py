@@ -88,4 +88,6 @@ class PubSubBuf(object):
 
     def __str__(self):
         return 'PubSubBuf top:0x{} cid:0x{} pay:{}'.format(
-            self.topic, self.corr_id, self.payload)
+            self.topic[:6],
+            self.corr_id[:6],
+            str(self.payload))

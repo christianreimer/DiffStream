@@ -8,12 +8,10 @@ import asyncio as aio
 import zmq
 import zmq.asyncio
 import random
-import constants as const
 import data
 from diffstream import cache
 from diffstream import consts
 from diffstream import protocol
-import uuid
 
 
 def initialize_zmq():
@@ -21,24 +19,16 @@ def initialize_zmq():
     zmq.asyncio.install()
     ctx = zmq.asyncio.Context()
     sock_pub = ctx.socket(zmq.PUB)
-    sock_pub.bind("tcp://*:{}".format(const.PUB_SUB_PORT))
+    sock_pub.bind("tcp://*:{}".format(consts.PUB_SUB_PORT))
     sock_rep = ctx.socket(zmq.REP)
-    sock_rep.bind("tcp://*:{}".format(const.REQ_RES_PORT))
+    sock_rep.bind("tcp://*:{}".format(consts.REQ_RES_PORT))
     return ctx, sock_pub, sock_rep
 
 
 async def publish(sock_pub, topic, corr_id, msg):
     """Publish msg using the given topic string"""
-    if not isinstance(topic, bytes):
-        topic = topic.encode()
-
-    if not isinstance(corr_id, bytes):
-        corr_id = corr_id.encode()
-
-    if not isinstance(msg, bytes):
-        msg = msg.encode()
-
-    await sock_pub.send_multipart((topic, corr_id, msg))
+    pub_msg = protocol.PubSubBuf(topic, corr_id, msg)
+    await sock_pub.send_multipart(pub_msg.to_network())
 
 
 async def process_retran_request(sock_pub, sock_rep, dc):
@@ -73,15 +63,15 @@ async def cleanup():
 async def run(sock_pub, sock_rep, dc):
     """Run the server"""
     auction_lst = []
-    for _ in range(3):
+    for _ in range(4):
         auction_lst.append(data.auction_generator())
 
     while True:
         auction = random.choice(auction_lst)
         auction_update = auction.__next__()
-        # print('Auction Update: {}'.format(auction_update))
+        print('Auction Update: {}'.format(auction_update))
         msg = dc.update(auction_update)
-        await publish(sock_pub, const.TOPIC_STRING, '', msg)
+        await publish(sock_pub, consts.TOPIC_STRING, '', msg)
         await aio.sleep(1)
 
 

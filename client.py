@@ -55,7 +55,7 @@ async def process_msg(msg, dc):
         print('Requesting a retransmission ....')
         return False, msg.key
 
-    # print('Hydrated: {}'.format(data))
+    print('Hydrated: {}'.format(data))
     return True, msg.key
 
 
@@ -69,12 +69,13 @@ async def run(sock_sub, sock_req, my_unique_id):
     dc = cache.DiffCache.consumer()
 
     while True:
-        topic, corr_id, msg = await sock_sub.recv_multipart()
-        # print('Received {} {} {}'.format(topic, corr_id, msg))
-        msg = msg.decode()
-        success, key = await process_msg(msg, dc)
+        buf = await sock_sub.recv_multipart()
+        msg = protocol.PubSubBuf.from_network(buf)
+        # print('Received {}'.format(msg))
+
+        success, key = await process_msg(msg.payload, dc)
         if not success:
-            await request_retrans(sock_req, my_unique_id, key.encode())
+            await request_retrans(sock_req, my_unique_id, key)
 
 
 def main():
