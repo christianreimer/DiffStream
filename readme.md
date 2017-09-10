@@ -1,9 +1,9 @@
 # DiffStream
 
-Project to examing performance and reliability of keeping multiple distributed 
-caches in sycn by sending diffs instead of the full object on each update.
+Project to examine performance and reliability of keeping multiple distributed 
+caches in sync by sending diffs instead of the full object on each update.
 
-Example (without the IPC)
+Example (for simplicity, without the IPC).
 ```python
 >>> from diffstream import cache
 >>> import pprint, json
@@ -40,7 +40,7 @@ the consumer cache to bring it up to date.
  'key': 314159}
 >>>
 ```
-When changs are made to the date, subsequent `DataMsg` update will only contain
+When changes are made to the data, subsequent `DataMsg` update will only contain
 the diff needed to sync the cached dicts.
 ```python
 >>> data['c']['c3'] = 'Maybe'
@@ -61,7 +61,7 @@ the diff needed to sync the cached dicts.
  'key': 314159}
 >>>
 ```
-Why go though the rouble with the diff? To avoid sending all of the dict data
+Why go though the trouble with the diff? To avoid sending all of the dict data
 when only a subset is changed.
 ```pythonuf_)
 >>> buf = json.dumps(data).encode()

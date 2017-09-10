@@ -23,39 +23,52 @@ receiver to operate as if the entire dict is sent with every message.
 
 Example:
 
->>> dc_sender = DiffCache()
->>> data = {'a': 1,
-            'b': {'aa': 11, 'bb': 22},
-            'c': True,
-            'd': 'hello',
-            'uid': 1234}
->>> diff = dc_sender.diff(data)
+>>> from diffstream import cache
 >>>
->>> dc_receiver = DiffCache()
->>> data_copy = dc_receiver.update(diff)
->>> print(data_copy)
-{'a': 1, 'b': {'aa': 11, 'bb': 22}, 'c': True, 'd': 'hello', 'uid': 1234}
+>>> producer = cache.DiffCache.producer()
+>>> consumer = cache.DiffCache.consumer()
 >>>
->>> data['a'] = 2
->>> data['b']['aa'] = 111
->>> del data['c']
->>> data['e'] = 3.14159
->>> print(data)
-{'a': 2, 'b': {'aa': 111, 'bb': 22}, 'd': 'hello', 'e': 3.14159}
->>> diff = dc_sender.diff(data)
+>>> data = {'key': 314159, 'a': 'Some really, really important text', 'b': 42,
+            'c': {'c1': True, 'c2': False}, 'd': list(range(10))}
+>>> pprint.pprint(data)
+{'a': 'Some really, really important text',
+ 'b': 42,
+ 'c': {'c1': True, 'c2': False},
+ 'd': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+ 'key': 314159}
 >>>
->>> data_copy = dc_receiver.update(diff)
->>> print(data_copy)
-{'a': 2, 'b': {'aa': 111, 'bb': 22}, 'd': 'hello', 'e': 3.14159}
+>>> msg = producer.update(data)
+>>> _, _, data_ = consumer.update(msg)
+>>> pprint.pprint(data_)
+{'a': 'Some really, really important text',
+ 'b': 42,
+ 'c': {'c1': True, 'c2': False},
+ 'd': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+ 'key': 314159}
 >>>
-
-differ.diff(d1, d2)
-differ.patch(d1, diffject)
-differ.validate(d1, diffject)
-
-DiffCache(differ)
-DiffStream(DiffCache)
-
+>>> data['c']['c3'] = 'Maybe'
+>>> pprint.pprint(data)
+{'a': 'Some really, really important text',
+ 'b': 42,
+ 'c': {'c1': True, 'c2': False, 'c3': 'Maybe'},
+ 'd': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+ 'key': 314159}
+>>>
+>>> msg = producer.update(data)
+>>> _, _, data_ = consumer.update(msg)
+>>> pprint.pprint(data_)
+{'a': 'Some really, really important text',
+ 'b': 42,
+ 'c': {'c1': True, 'c2': False, 'c3': 'Maybe'},
+ 'd': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+ 'key': 314159}
+>>>
+>>> buf = json.dumps(data).encode()
+>>> type(buf), len(buf)
+(<class 'bytes'>, 151)
+>>> buf_ = msg.encode()
+>>> type(buf_), len(buf_)
+(<class 'bytes'>, 115)
 """
 
 
