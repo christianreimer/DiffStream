@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/christianreimer/DiffStream.svg?branch=master)](https://travis-ci.org/christianreimer/DiffStream)
 
+[![Coverage Status](https://coveralls.io/repos/github/christianreimer/DiffStream/badge.svg?branch=master)](https://coveralls.io/github/christianreimer/DiffStream?branch=travis)
+
 Project to examine performance and reliability of keeping multiple distributed 
 caches in sync by sending diffs instead of the full object on each update.
 
