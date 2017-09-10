@@ -3,13 +3,13 @@
 Project to examing performance and reliability of keeping multiple distributed 
 caches in sycn by sending diffs instead of the full object on each update.
 
-## Example
+Example (without the IPC)
 ```python
 >>> from diffstream import cache
 >>> import pprint, json
 >>>
 ```
-Create the producer and consumer caches and some data in a dict
+Create the producer and consumer caches and some data in a dict.
 ```python
 >>> producer = cache.DiffCache.producer()
 >>> consumer = cache.DiffCache.consumer()
@@ -63,11 +63,11 @@ the diff needed to sync the cached dicts.
 ```
 Why go though the rouble with the diff? To avoid sending all of the dict data
 when only a subset is changed.
-```python
->>> len(json.dumps(data).encode())
-len(json.dumps(data))
-151
->>> len(msg.encode())
-115
->>>
+```pythonuf_)
+>>> buf = json.dumps(data).encode()
+>>> type(buf), len(buf)
+(<class 'bytes'>, 151)
+>>> buf_ = msg.encode()
+>>> type(buf_), len(buf_)
+(<class 'bytes'>, 115)
 ```
