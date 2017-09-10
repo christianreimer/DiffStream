@@ -1,8 +1,8 @@
-.PHONY: tests flake clean
+.PHONY: test flake clean
 
-all: tests flake
+all: test flake
 
-tests:
+test:
 	pytest --cov-report term-missing --cov=diffstream --verbose diffstream/tests/test_*py
 
 flake:

@@ -1,5 +1,7 @@
 # DiffStream
 
+https://travis-ci.org/christianreimer/DiffStream.svg?branch=master
+
 Project to examine performance and reliability of keeping multiple distributed 
 caches in sync by sending diffs instead of the full object on each update.
 
