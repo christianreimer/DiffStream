@@ -1,5 +1,5 @@
 """
-Stream server supporing publications and retransmission requests.
+Stream server supporting publications and retransmission requests.
 
 Leverages zmq for IPC
 """

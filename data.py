@@ -13,7 +13,11 @@ _descriptions = ['Super Duper Space Monkey', 'Antique Bobble Wheel',
 
 
 def auction_generator():
-    """Generate fake auction data for testing purposes"""
+    """
+    Generate fake auction data for testing purposes.
+
+    Returns a generator
+    """
     data = {'key': uuid.uuid4().hex,
             'description': random.choice(_descriptions),
             'last_bid': {'user': None, 'price': 0, 'time': None}}

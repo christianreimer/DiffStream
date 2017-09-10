@@ -14,11 +14,16 @@ from . import CacheKeyWarning
 
 
 def md5_checksum(data):
+    """
+    Produce md5 hash as hex string
+    """
     return hashlib.md5(json.dumps(data).encode('utf-8')).hexdigest()
 
 
 class DataMsg(object):
-    """DataMsg to a cached object"""
+    """
+    DataMsg to a cached object
+    """
 
     def __init__(self, cmd, key, data, checksum):
         self.cmd = cmd
@@ -28,34 +33,55 @@ class DataMsg(object):
 
     @classmethod
     def new_data(cls, key, data):
+        """
+        Crete NEW DataMsg
+        """
         return DataMsg(consts._cmd_new_, key, data, None)
 
     @classmethod
     def upd_data(cls, key, data, checksum):
+        """
+        Crete UPDATE DataMsg
+        """
         return DataMsg(consts._cmd_upd_, key, data, checksum)
 
     @classmethod
     def del_data(cls, key):
+        """
+        Create DELETE DataMsg
+        """
         return DataMsg(consts._cmd_del_, key, None, None)
 
     @classmethod
     def ret_data(cls, key, data):
+        """
+        Create RETRAN DataMsg
+        """
         return DataMsg(consts._cmd_ret_, key, data, None)
 
     @classmethod
     def from_json(cls, json_str):
+        """
+        Create DataMsg from JSON string
+        """
         cmd, key, data, checksum = json.loads(json_str)
         if isinstance(data, str) and cmd == consts._cmd_upd_:
             data = jsonpatch.JsonPatch.from_string(data)
         return DataMsg(cmd, key, data, checksum)
 
     def to_json(self):
+        """
+        Return JSON representation of the message
+        """
         data = self.data
         if self.data and isinstance(self.data, jsonpatch.JsonPatch):
             data = self.data.to_string()
         return json.dumps([self.cmd, self.key, data, self.checksum])
 
     def encode(self):
+        """
+        Return byte encoded JSON representation of the message
+        """
         return self.to_json().encode()
 
     def decode(self):
@@ -67,7 +93,6 @@ class DataMsg(object):
             self.data = self.data.decode()
         if isinstance(self.checksum, bytes):
             self.checksum = self.checksum.decode()
-
 
     def __eq__(self, other):
         if not (self.cmd == other.cmd and

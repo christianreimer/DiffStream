@@ -6,6 +6,15 @@ from . import consts
 
 
 class ReqResMsg(object):
+    """
+    Rquest Response Message
+
+    Each message comtains a the requested command, the unique_key of the
+    requesting consumer (to be used as a publishing topic), the key identifying
+    the data object in question, and a correlation id to help the client tie
+    messages back to requests.
+    """
+
     def __init__(self, cmd, unique_id='', key='', corr_id=''):
         self.cmd = cmd
         self.unique_id = unique_id
@@ -40,7 +49,7 @@ class ReqResMsg(object):
     @classmethod
     def from_network(cls, buffer):
         """
-        Convert zmq message buffer into ReqResMsg object.ReqResMsg
+        Construct ReqResMsg from a byte buffer
         """
         cmd = buffer[0].decode()
         unique_id = buffer[1].decode()
@@ -50,7 +59,7 @@ class ReqResMsg(object):
 
     def to_network(self):
         """
-        Return encoded representation suitable for transmission via zmq.
+        Return byte representation suitable for transmission via network
         """
         cmd = isinstance(self.cmd, bytes) and self.cmd or self.cmd.encode()
         key = isinstance(self.key, bytes) and self.key or self.key.encode()
@@ -69,6 +78,16 @@ class ReqResMsg(object):
 
 
 class PubSubMsg(object):
+    """
+    Publish Subscribe Message
+
+    Each message contains the topic to be used for publishing, optionally a
+    correlation id (if the publish is the result of a request from a consumer),
+    and the payload to be applied by the consumer.
+
+    It is expected that only producers will create PubSubMsgs.
+    """
+
     def __init__(self, topic, corr_id, payload):
         self.topic = topic
         self.corr_id = corr_id
@@ -76,12 +95,18 @@ class PubSubMsg(object):
 
     @classmethod
     def from_network(cls, buf):
+        """
+        Construct a PubSubMsg from a byte buffer
+        """
         _t = buf[0].decode()
         _c = buf[1].decode()
         _p = buf[2].decode()
         return PubSubMsg(_t, _c, _p)
 
     def to_network(self):
+        """
+        Return byte representation suitable for transmission via network
+        """
         return (self.topic.encode(),
                 self.corr_id.encode(),
                 self.payload.encode())
