@@ -1,8 +1,6 @@
 # DiffStream
 
-[![Build Status](https://travis-ci.org/christianreimer/DiffStream.svg?branch=master)](https://travis-ci.org/christianreimer/DiffStream)
-
-[![Coverage Status](https://coveralls.io/repos/github/christianreimer/DiffStream/badge.svg?branch=master)](https://coveralls.io/github/christianreimer/DiffStream)
+[![Build Status](https://travis-ci.org/christianreimer/DiffStream.svg?branch=master)](https://travis-ci.org/christianreimer/DiffStream)  [![Coverage Status](https://coveralls.io/repos/github/christianreimer/DiffStream/badge.svg?branch=master)](https://coveralls.io/github/christianreimer/DiffStream)
 
 Project to examine performance and reliability of keeping multiple distributed 
 caches in sync by sending diffs instead of the full object on each update.
@@ -18,11 +16,7 @@ Create the producer and consumer caches and some data in a dict.
 >>> producer = cache.DiffCache.producer()
 >>> consumer = cache.DiffCache.consumer()
 >>>
->>> data = {'key': 314159,
-            'a': 'Some really, really important text',
-            'b': 42,
-            'c': {'c1': True, 'c2': False},
-            'd': list(range(10))}
+>>> data = {'key': 314159, 'a': 'Some really, really important text', 'b': 42, 'c': {'c1': True, 'c2': False}, 'd': list(range(10))}
 >>> pprint.pprint(data)
 {'a': 'Some really, really important text',
  'b': 42,
