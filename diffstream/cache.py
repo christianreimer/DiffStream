@@ -68,7 +68,6 @@ class DataMsg(object):
         if isinstance(self.checksum, bytes):
             self.checksum = self.checksum.decode()
 
-
     def __eq__(self, other):
         if not (self.cmd == other.cmd and
                 self.key == other.key and

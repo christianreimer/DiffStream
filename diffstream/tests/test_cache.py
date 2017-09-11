@@ -225,4 +225,3 @@ def test_retran_with_byte_key():
     data = {'key': key, 'a': 1}
     producer.update(data)
     producer.retran(key.encode())
-

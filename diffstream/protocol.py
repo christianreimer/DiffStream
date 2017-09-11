@@ -40,7 +40,7 @@ class ReqResMsg(object):
     @classmethod
     def from_network(cls, buffer):
         """
-        Convert zmq message buffer into ReqResMsg object.ReqResMsg
+        Convert byte buffer into ReqResMsg
         """
         cmd = buffer[0].decode()
         unique_id = buffer[1].decode()
@@ -50,7 +50,7 @@ class ReqResMsg(object):
 
     def to_network(self):
         """
-        Return encoded representation suitable for transmission via zmq.
+        Return byte representation suitable for transmission via network
         """
         cmd = isinstance(self.cmd, bytes) and self.cmd or self.cmd.encode()
         key = isinstance(self.key, bytes) and self.key or self.key.encode()
