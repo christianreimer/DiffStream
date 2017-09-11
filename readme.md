@@ -67,7 +67,7 @@ the diff needed to sync the cached dicts.
 ```
 Why go though the trouble with the diff? To avoid sending all of the dict data
 when only a subset is changed.
-```pythonuf_)
+```python
 >>> buf = json.dumps(data).encode()
 >>> type(buf), len(buf)
 (<class 'bytes'>, 151)
