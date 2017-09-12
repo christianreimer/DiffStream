@@ -58,16 +58,6 @@ class DataMsg(object):
     def encode(self):
         return self.to_json().encode()
 
-    def decode(self):
-        if isinstance(self.cmd, bytes):
-            self.cmd = self.cmd.decode()
-        if isinstance(self.key, bytes):
-            self.key = self.key.decode()
-        if isinstance(self.data, bytes):
-            self.data = self.data.decode()
-        if isinstance(self.checksum, bytes):
-            self.checksum = self.checksum.decode()
-
     def __eq__(self, other):
         if not (self.cmd == other.cmd and
                 self.key == other.key and

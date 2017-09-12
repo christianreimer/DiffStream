@@ -63,3 +63,21 @@ def test_to_from_json_bad():
     msg2 = cache.DataMsg.from_json(msg1.to_json())
     msg2.key = 314
     assert not msg1 == msg2
+
+
+def test_encode():
+    producer, _ = create_caches()
+    key = 314159
+    data = {'a': 1, 'b': 2, 'key': key}
+    msg = producer.update(data)
+    byte_str = msg.encode()
+    assert isinstance(byte_str, bytes)
+
+
+def test_str():
+    producer, _ = create_caches()
+    key = 314
+    data = {'a': 1, 'b': 2, 'key': key}
+    msg = producer.update(data)
+    assert str(msg) == \
+        "DataMsg cmd:NEW key:314 data:{'a': 1, 'b': 2, 'key': 314}"
