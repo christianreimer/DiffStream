@@ -5,12 +5,6 @@ Constants used to coordinate communication
 _role_producer_ = '_producer_'
 _role_consumer_ = '_consumer_'
 
-PUB_SUB_PORT = 5563
-PUB_SUB_HOST = 'localhost'
-REQ_RES_PORT = 5564
-REQ_RES_HOST = 'localhost'
-TOPIC_STRING = '_ATOP_'
-
 _cmd_upd_ = 'u'
 _cmd_new_ = 'n'
 _cmd_del_ = 'd'

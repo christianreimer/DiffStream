@@ -1,5 +1,6 @@
-from diffstream import cache
-from diffstream import consts
+from cache import cache
+from cache import patch
+from cache import consts
 
 
 def create_caches():
@@ -13,9 +14,9 @@ def test_to_from_json_new():
     key = 314159
     data = {'a': 1, 'b': 2, 'key': key}
     msg1 = producer.update(data)
-    msg2 = cache.DataMsg.from_json(msg1.to_json())
-    assert isinstance(msg1, cache.DataMsg)
-    assert isinstance(msg2, cache.DataMsg)
+    msg2 = patch.DataMsg.from_json(msg1.to_json())
+    assert isinstance(msg1, patch.DataMsg)
+    assert isinstance(msg2, patch.DataMsg)
     assert msg1 == msg2
 
 
@@ -25,9 +26,9 @@ def test_to_from_json_ret():
     data = {'a': 1, 'b': 2, 'key': key}
     producer.update(data)
     msg1 = producer.retran(key)
-    msg2 = cache.DataMsg.from_json(msg1.to_json())
-    assert isinstance(msg1, cache.DataMsg)
-    assert isinstance(msg2, cache.DataMsg)
+    msg2 = patch.DataMsg.from_json(msg1.to_json())
+    assert isinstance(msg1, patch.DataMsg)
+    assert isinstance(msg2, patch.DataMsg)
     assert msg1 == msg2
 
 
@@ -39,9 +40,9 @@ def test_to_from_json_upd():
     data['a'] = 2
     msg1 = producer.update(data)
     assert msg1.cmd == consts._cmd_upd_
-    msg2 = cache.DataMsg.from_json(msg1.to_json())
-    assert isinstance(msg1, cache.DataMsg)
-    assert isinstance(msg2, cache.DataMsg)
+    msg2 = patch.DataMsg.from_json(msg1.to_json())
+    assert isinstance(msg1, patch.DataMsg)
+    assert isinstance(msg2, patch.DataMsg)
     assert msg1 == msg2
 
 
@@ -51,7 +52,7 @@ def test_to_from_json_del():
     data = {'a': 1, 'b': 2, 'key': key}
     producer.update(data)
     msg1 = producer.delete(key)
-    msg2 = cache.DataMsg.from_json(msg1.to_json())
+    msg2 = patch.DataMsg.from_json(msg1.to_json())
     assert msg1 == msg2
 
 
@@ -60,7 +61,7 @@ def test_to_from_json_bad():
     key = 314159
     data = {'a': 1, 'b': 2, 'key': key}
     msg1 = producer.update(data)
-    msg2 = cache.DataMsg.from_json(msg1.to_json())
+    msg2 = patch.DataMsg.from_json(msg1.to_json())
     msg2.key = 314
     assert not msg1 == msg2
 

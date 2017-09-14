@@ -1,8 +1,9 @@
 """
 Classes and constants to assist with the IPC protocol.
 """
+
 import uuid
-from . import consts
+from cache import consts
 
 
 class ReqResMsg(object):

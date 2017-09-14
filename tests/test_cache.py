@@ -2,11 +2,11 @@ import hashlib
 import json
 import pytest
 
-from diffstream import cache
-from diffstream import ChecksumMismatchError
-from diffstream import PatchMissmatchError
-from diffstream import CacheKeyError
-from diffstream import CacheKeyWarning
+from cache import cache
+from cache import ChecksumMismatchError
+from cache import PatchMissmatchError
+from cache import CacheKeyError
+from cache import CacheKeyWarning
 
 
 def create_caches():
