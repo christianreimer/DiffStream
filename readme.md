@@ -1,6 +1,6 @@
 # DiffStream
 
-[![Build Status](https://travis-ci.org/christianreimer/DiffStream.svg?branch=master)](https://travis-ci.org/christianreimer/DiffStream)  [![Coverage Status](https://coveralls.io/repos/github/christianreimer/DiffStream/badge.svg?branch=master)](https://coveralls.io/github/christianreimer/DiffStream)  [![Python Version]](https://img.shields.io/badge/python%20version-3.6-brightgreen.svg)
+[![Build Status](https://travis-ci.org/christianreimer/DiffStream.svg?branch=master)](https://travis-ci.org/christianreimer/DiffStream)  [![Coverage Status](https://coveralls.io/repos/github/christianreimer/DiffStream/badge.svg?branch=master)](https://coveralls.io/github/christianreimer/DiffStream)  [![Python Version](https://img.shields.io/badge/python%20version-3.6-brightgreen.svg)](https://img.shields.io/badge/python%20version-3.6-brightgreen.svg)
 
 Project to examine performance and reliability of keeping multiple distributed 
 caches in sync by sending diffs instead of the full object on each update.
