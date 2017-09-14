@@ -10,6 +10,6 @@ flake:
 	@flake8 . || true
 
 clean:
-	@echo "Removing .pyc cache files"
-	@find . -name "*.pyc" -delete
-	@find . -name "_pycache_" -rmdir
+	@echo "Removing cache directories"
+	@find . -name __pycache__ -type d -exec rm -rf {} +
+	@find . -name .cache -type d -exec rm -rf {} +

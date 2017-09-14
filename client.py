@@ -9,8 +9,10 @@ import zmq
 import zmq.asyncio
 import uuid
 import constants as const
-from diffstream import cache
-from diffstream import protocol
+from cache import cache
+from cache import patch
+from stream import protocol
+from stream import PUB_SUB_PORT, PUB_SUB_HOST, REQ_RES_PORT, REQ_RES_HOST, TOPIC_STRING
 
 
 def initialize_zmq():
@@ -45,7 +47,7 @@ async def request_retrans(sock, my_unique_id, key):
 
 async def process_msg(msg, dc):
     """Process a message received on the subscription interface"""
-    msg = cache.DataMsg.from_json(msg)
+    msg = patch.DataMsg.from_json(msg)
     # print('Received msg: {}'.format(msg))
 
     try:

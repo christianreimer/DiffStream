@@ -9,9 +9,10 @@ import zmq
 import zmq.asyncio
 import random
 import data
-from diffstream import cache
-from diffstream import consts
-from diffstream import protocol
+from cache import cache
+from cache import consts
+from stream import protocol
+from stream import PUB_SUB_PORT, PUB_SUB_HOST, REQ_RES_PORT, REQ_RES_HOST, TOPIC_STRING
 
 
 def initialize_zmq():
@@ -19,9 +20,9 @@ def initialize_zmq():
     zmq.asyncio.install()
     ctx = zmq.asyncio.Context()
     sock_pub = ctx.socket(zmq.PUB)
-    sock_pub.bind("tcp://*:{}".format(consts.PUB_SUB_PORT))
+    sock_pub.bind("tcp://*:{}".format(PUB_SUB_PORT))
     sock_rep = ctx.socket(zmq.REP)
-    sock_rep.bind("tcp://*:{}".format(consts.REQ_RES_PORT))
+    sock_rep.bind("tcp://*:{}".format(REQ_RES_PORT))
     return ctx, sock_pub, sock_rep
 
 
@@ -71,7 +72,7 @@ async def run(sock_pub, sock_rep, dc):
         auction_update = auction.__next__()
         print('Auction Update: {}'.format(auction_update))
         msg = dc.update(auction_update)
-        await publish(sock_pub, consts.TOPIC_STRING, '', msg)
+        await publish(sock_pub, TOPIC_STRING, '', msg)
         await aio.sleep(1)
 
 
