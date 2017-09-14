@@ -3,12 +3,13 @@
 all: test flake
 
 test:
-	pytest --cov-report term-missing --cov=diffstream --verbose diffstream/tests/test_*py
+	pytest --cov-report term-missing --cov=cache --verbose tests/
 
 flake:
 	@echo 'flak8 output:'
 	@flake8 . || true
 
 clean:
-	@echo "Removing .pyc cache files"
-	@find . -name "*.pyc" -delete
+	@echo "Removing cache directories"
+	@find . -name __pycache__ -type d -exec rm -rf {} +
+	@find . -name .cache -type d -exec rm -rf {} +
