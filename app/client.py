@@ -8,7 +8,7 @@ import asyncio as aio
 import zmq
 import zmq.asyncio
 import uuid
-import constants as const
+from cache import consts
 from cache import cache
 from cache import patch
 from stream import protocol
@@ -20,11 +20,9 @@ def initialize_zmq():
     zmq.asyncio.install()
     ctx = zmq.asyncio.Context()
     sock_sub = ctx.socket(zmq.SUB)
-    sock_sub.connect("tcp://{}:{}".format(
-        const.PUB_SUB_HOST, const.PUB_SUB_PORT))
+    sock_sub.connect("tcp://{}:{}".format(PUB_SUB_HOST, PUB_SUB_PORT))
     sock_req = ctx.socket(zmq.REQ)
-    sock_req.connect("tcp://{}:{}".format(
-        const.REQ_RES_HOST, const.REQ_RES_PORT))
+    sock_req.connect("tcp://{}:{}".format(REQ_RES_HOST, REQ_RES_PORT))
     return ctx, sock_sub, sock_req
 
 
@@ -32,7 +30,7 @@ def subscribe(sock, topicfilter):
     """Subscribe to the publisher for the given topic"""
     print('Subscribing using filter: {}'.format(topicfilter))
     for topic in topicfilter:
-        sock.setsockopt(zmq.SUBSCRIBE, topic)
+        sock.setsockopt(zmq.SUBSCRIBE, topic.encode())
 
 
 async def request_retrans(sock, my_unique_id, key):
@@ -85,7 +83,7 @@ def main():
     ctx, sock_sub, sock_req = initialize_zmq()
 
     my_unique_id = uuid.uuid4().hex
-    subscribe(sock_sub, (const.TOPIC_STRING, my_unique_id.encode()))
+    subscribe(sock_sub, (TOPIC_STRING, my_unique_id))
 
     print('Ctrl+C to exit')
 

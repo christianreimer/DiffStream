@@ -8,7 +8,7 @@ import asyncio as aio
 import zmq
 import zmq.asyncio
 import random
-import data
+from . import data
 from cache import cache
 from cache import consts
 from stream import protocol
