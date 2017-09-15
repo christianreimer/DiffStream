@@ -7,8 +7,7 @@ caches in sync by sending diffs instead of the full object on each update.
 
 Example (for simplicity, without the IPC).
 ```python
->>> from diffstream import cache
->>> import pprint, json
+>>> from cache import cache
 >>>
 ```
 Create the producer and consumer caches and some data in a dict.
@@ -62,6 +61,7 @@ the diff needed to sync the cached dicts.
 Why go though the trouble with the diff? To avoid sending all of the dict data
 when only a subset is changed.
 ```python
+>>> import pprint, json
 >>> buf = json.dumps(data).encode()
 >>> type(buf), len(buf)
 (<class 'bytes'>, 151)
