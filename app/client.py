@@ -12,17 +12,16 @@ from cache import consts
 from cache import cache
 from cache import patch
 from stream import protocol
-from stream import PUB_SUB_PORT, PUB_SUB_HOST, REQ_RES_PORT, REQ_RES_HOST, TOPIC_STRING
 
 
-def initialize_zmq():
+def initialize_zmq(server_addr, pubsub_port, reqres_port):
     """Setup zmq and required ports"""
     zmq.asyncio.install()
     ctx = zmq.asyncio.Context()
     sock_sub = ctx.socket(zmq.SUB)
-    sock_sub.connect("tcp://{}:{}".format(PUB_SUB_HOST, PUB_SUB_PORT))
+    sock_sub.connect("tcp://{}:{}".format(server_addr, pubsub_port))
     sock_req = ctx.socket(zmq.REQ)
-    sock_req.connect("tcp://{}:{}".format(REQ_RES_HOST, REQ_RES_PORT))
+    sock_req.connect("tcp://{}:{}".format(server_addr, reqres_port))
     return ctx, sock_sub, sock_req
 
 
@@ -78,12 +77,14 @@ async def run(sock_sub, sock_req, my_unique_id):
             await request_retrans(sock_req, my_unique_id, key)
 
 
-def main():
-    print('Initializing zmq connection')
-    ctx, sock_sub, sock_req = initialize_zmq()
+def main(host_addr, pubsub_port, reqres_port, topic_string):
+    print('Connecting to server on {}'.format(host_addr))
+
+    ctx, sock_sub, sock_req = initialize_zmq(
+        host_addr, pubsub_port, reqres_port)
 
     my_unique_id = uuid.uuid4().hex
-    subscribe(sock_sub, (TOPIC_STRING, my_unique_id))
+    subscribe(sock_sub, (topic_string, my_unique_id))
 
     print('Ctrl+C to exit')
 
@@ -100,5 +101,5 @@ def main():
     aio.get_event_loop().close()
 
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    main(args[1], int(args[2]), int(args[3]), args[4])

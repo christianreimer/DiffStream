@@ -12,17 +12,16 @@ from . import data
 from cache import cache
 from cache import consts
 from stream import protocol
-from stream import PUB_SUB_PORT, PUB_SUB_HOST, REQ_RES_PORT, REQ_RES_HOST, TOPIC_STRING
 
 
-def initialize_zmq():
+def initialize_zmq(pubsub_port, reqres_port):
     """Setup zmq and required ports"""
     zmq.asyncio.install()
     ctx = zmq.asyncio.Context()
     sock_pub = ctx.socket(zmq.PUB)
-    sock_pub.bind("tcp://*:{}".format(PUB_SUB_PORT))
+    sock_pub.bind("tcp://*:{}".format(pubsub_port))
     sock_rep = ctx.socket(zmq.REP)
-    sock_rep.bind("tcp://*:{}".format(REQ_RES_PORT))
+    sock_rep.bind("tcp://*:{}".format(reqres_port))
     return ctx, sock_pub, sock_rep
 
 
@@ -61,7 +60,7 @@ async def cleanup():
         task.cancel()
 
 
-async def run(sock_pub, sock_rep, dc):
+async def run(sock_pub, sock_rep, dc, topic_string):
     """Run the server"""
     auction_lst = []
     for _ in range(4):
@@ -72,13 +71,14 @@ async def run(sock_pub, sock_rep, dc):
         auction_update = auction.__next__()
         print('Auction Update: {}'.format(auction_update))
         msg = dc.update(auction_update)
-        await publish(sock_pub, TOPIC_STRING, '', msg)
+        await publish(sock_pub, topic_string, '', msg)
         await aio.sleep(1)
 
 
-def main():
+def main(pubsub_port, reqres_port, topic_string):
     print('Initializing zmq connection')
-    ctx, sock_pub, sock_rep = initialize_zmq()
+
+    ctx, sock_pub, sock_rep = initialize_zmq(pubsub_port, reqres_port)
 
     print('Ctrl+C to exit')
 
@@ -87,7 +87,7 @@ def main():
 
     try:
         loop.create_task(process_retran_request(sock_pub, sock_rep, dc))
-        loop.run_until_complete(run(sock_pub, sock_rep, dc))
+        loop.run_until_complete(run(sock_pub, sock_rep, dc, topic_string))
     except KeyboardInterrupt:
         loop.run_until_complete(cleanup())
 
@@ -99,4 +99,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    _, pubsub_port, reqreq_port, topic = sys.args.split()
+    main(int(pubsub_port), int(reqres_port), topic)
