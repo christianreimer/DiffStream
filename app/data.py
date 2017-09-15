@@ -54,7 +54,7 @@ def auction_generator():
     Generate fake auction data for testing purposes
     """
     data = {'key': uuid.uuid4().hex,
-            'tile': random.choice(_titles),
+            'title': random.choice(_titles),
             'description': slizer(_lorem),
             'last_bid': {'user': None, 'price': 0, 'time': None}}
 
