@@ -77,7 +77,7 @@ async def run(sock_sub, sock_req, my_unique_id):
             await request_retrans(sock_req, my_unique_id, key)
 
 
-def main(host_addr, pubsub_port, reqres_port, topic_string):
+def start(host_addr, pubsub_port, reqres_port, topic_string):
     print('Connecting to server on {}'.format(host_addr))
 
     ctx, sock_sub, sock_req = initialize_zmq(
@@ -99,7 +99,3 @@ def main(host_addr, pubsub_port, reqres_port, topic_string):
     sock_req.close()
     ctx.term()
     aio.get_event_loop().close()
-
-
-if __name__ == '__main__':
-    main(args[1], int(args[2]), int(args[3]), args[4])

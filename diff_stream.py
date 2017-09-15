@@ -35,7 +35,7 @@ if __name__ == '__main__':
     reqres = int(args['--reqres'])
 
     if args['client']:
-        client.main(args['--addr'], pubsub, reqres, topic)
+        client.start(args['--addr'], pubsub, reqres, topic)
 
     elif args['server']:
-        server.main(pubsub, reqres, topic)
+        server.start(pubsub, reqres, topic)
