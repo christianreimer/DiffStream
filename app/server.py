@@ -26,14 +26,18 @@ def initialize_zmq(pubsub_port, reqres_port):
 
 
 async def publish(sock_pub, topic, corr_id, msg):
-    """Publish msg using the given topic string"""
+    """
+    Publish msg using the given topic string
+    """
     pub_msg = protocol.PubSubMsg(topic, corr_id, msg)
     await sock_pub.send_multipart(pub_msg.to_network())
 
 
 async def process_retran_request(sock_pub, sock_rep, dc):
-    """Listen for retransmission requests on the request socket, and initiate
-    republish using the requesters topic string"""
+    """
+    Listen for retransmission requests on the request socket, and initiate
+    republish events using the requesters specific topic string.
+    """
     while True:
         buf = await sock_rep.recv_multipart()
         request = protocol.ReqResMsg.from_network(buf)
@@ -54,14 +58,18 @@ async def process_retran_request(sock_pub, sock_rep, dc):
 
 
 async def cleanup():
-    """Clean up event loop to prepare for exit"""
+    """
+    Clean up event loop to prepare for exit.
+    """
     print('Canceling outstanding tasks')
     for task in aio.Task.all_tasks():
         task.cancel()
 
 
 async def run(sock_pub, sock_rep, dc, topic_string):
-    """Run the server"""
+    """
+    Run the server.
+    """
     auction_lst = []
     for _ in range(4):
         auction_lst.append(data.auction_generator())
@@ -75,7 +83,7 @@ async def run(sock_pub, sock_rep, dc, topic_string):
         await aio.sleep(1)
 
 
-def main(pubsub_port, reqres_port, topic_string):
+def start(pubsub_port, reqres_port, topic_string):
     print('Initializing zmq connection')
 
     ctx, sock_pub, sock_rep = initialize_zmq(pubsub_port, reqres_port)
@@ -96,9 +104,3 @@ def main(pubsub_port, reqres_port, topic_string):
     sock_rep.close()
     ctx.term()
     loop.close()
-
-
-if __name__ == "__main__":
-    import sys
-    _, pubsub_port, reqreq_port, topic = sys.args.split()
-    main(int(pubsub_port), int(reqres_port), topic)
