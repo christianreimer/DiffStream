@@ -8,6 +8,7 @@ import asyncio as aio
 import zmq
 import zmq.asyncio
 import random
+import signal
 from . import data
 from cache import cache
 from cache import consts
@@ -56,16 +57,8 @@ async def process_retran_request(sock_pub, sock_rep, dc):
             print('Responding: {}'.format(response))
 
             msg = dc.retran(request.key)
-            await publish(sock_pub, request.unique_id, request.corr_id, msg)
-
-
-async def cleanup():
-    """
-    Clean up event loop to prepare for exit.
-    """
-    print('Canceling outstanding tasks')
-    for task in aio.Task.all_tasks():
-        task.cancel()
+            await publish(
+                sock_pub, request.unique_id, request.corr_id, msg)
 
 
 async def run(sock_pub, sock_rep, dc, topic, auctions, sleep_sec, count):
@@ -86,8 +79,13 @@ async def run(sock_pub, sock_rep, dc, topic, auctions, sleep_sec, count):
         await publish(sock_pub, topic, '', msg)
         count -= 1
 
-    print('Done sending out updates')
-    await cleanup()
+    print('Done sending out updates, Ctrl+C to exit')
+
+
+def cleanup():
+    print('Canceling outstanding tasks')
+    for task in aio.Task.all_tasks():
+        task.cancel()
 
 
 def start(pubsub_port, reqres_port, topic_string, args=None):
@@ -96,11 +94,12 @@ def start(pubsub_port, reqres_port, topic_string, args=None):
     print('Initializing zmq connection')
 
     ctx, sock_pub, sock_rep = initialize_zmq(pubsub_port, reqres_port)
+    dc = cache.DiffCache.producer(key_name='key')
 
     print('Ctrl+C to exit')
 
     loop = aio.get_event_loop()
-    dc = cache.DiffCache.producer(key_name='key')
+    loop.add_signal_handler(signal.SIGINT, cleanup)
 
     try:
         auctions = int(args['--auctions'])
@@ -118,14 +117,14 @@ def start(pubsub_port, reqres_port, topic_string, args=None):
         count = 3
 
     try:
-        loop.create_task(process_retran_request(sock_pub, sock_rep, dc))
-        loop.run_until_complete(run(
-            sock_pub, sock_rep, dc, topic_string, auctions, sleep_sec, count))
-    except KeyboardInterrupt:
-        loop.run_until_complete(cleanup())
-
-    print('Closing zmq connection')
-    sock_pub.close()
-    sock_rep.close()
-    ctx.term()
-    loop.close()
+        loop.run_until_complete(
+            aio.wait((process_retran_request(sock_pub, sock_rep, dc),
+                      run(sock_pub, sock_rep, dc, topic_string,
+                          auctions, sleep_sec, count))))
+    except aio.CancelledError:
+        print('Closing zmq connection')
+        sock_pub.close()
+        sock_rep.close()
+        ctx.term()
+    finally:
+        loop.close()

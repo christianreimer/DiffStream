@@ -9,6 +9,7 @@ import zmq
 import zmq.asyncio
 import uuid
 import random
+import signal
 from cache import consts
 from cache import cache
 from cache import patch
@@ -67,7 +68,7 @@ async def process_msg(msg, dc):
     return True, msg.key
 
 
-async def cleanup():
+def cleanup():
     """
     Clean up event loop to prepare for exit.
     """
@@ -102,16 +103,18 @@ def start(host_addr, pubsub_port, reqres_port, topic_string, fuzz):
     my_unique_id = uuid.uuid4().hex
     subscribe(sock_sub, (topic_string, my_unique_id))
 
+    loop = aio.get_event_loop()
+    loop.add_signal_handler(signal.SIGINT, cleanup)
+
     print('Ctrl+C to exit')
 
     try:
         aio.get_event_loop().run_until_complete(
             run(sock_sub, sock_req, my_unique_id, fuzz))
-    except KeyboardInterrupt:
-        aio.get_event_loop().run_until_complete(cleanup())
-
-    print('Closing zmq connection')
-    sock_sub.close()
-    sock_req.close()
-    ctx.term()
-    aio.get_event_loop().close()
+    except aio.CancelledError:
+        print('Closing zmq connection')
+        sock_sub.close()
+        sock_req.close()
+        ctx.term()
+    finally:
+        loop.close()
