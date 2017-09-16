@@ -6,6 +6,7 @@ import copy
 import hashlib
 import json
 import jsonpatch
+import collections
 from . import consts
 from . import patch
 from . import ChecksumMismatchError
@@ -15,6 +16,9 @@ from . import CacheKeyWarning
 
 
 def md5_checksum(data):
+    """
+    md5 hash (as hex) of the json encoded data.
+    """
     return hashlib.md5(json.dumps(data).encode('utf-8')).hexdigest()
 
 
@@ -37,17 +41,20 @@ class DiffCache(object):
         self.key_name = key_name
         self.copyobj = copyobj
         self.strict = strict
-        self.stats = {consts._cmd_del_: 0,
-                      consts._cmd_new_: 0,
-                      consts._cmd_upd_: 0,
-                      consts._cmd_ret_: 0}
+        self.stats = collections.Counter()
 
     @classmethod
     def producer(cls, key_name='key', copyobj=True, strict=False):
+        """
+        Create a producer cache.
+        """
         return DiffCache(consts._role_producer_, key_name, copyobj, strict)
 
     @classmethod
     def consumer(cls, key_name='key', copyobj=True, strict=False):
+        """
+        Create a consumer cache.
+        """
         return DiffCache(consts._role_consumer_, key_name, copyobj, strict)
 
     def __getitem__(self, key):
@@ -72,13 +79,18 @@ class DiffCache(object):
         raise NotImplementedError  # pragma: no cover
 
     def _maybe_copy(self, data):
+        """
+        Perform a deep copy of data if cache is configured for it.
+        """
         if self.copyobj:
             return copy.deepcopy(data)
         else:
             return data
 
     def _update_producer(self, data_new):
-        """Update local cache and create a diff describing the update"""
+        """
+        Update local cache and create a diff describing the update.
+        """
         try:
             key = data_new[self.key_name]
         except KeyError:
@@ -98,7 +110,9 @@ class DiffCache(object):
             return patch.DataMsg.new_data(key, data_new)
 
     def _delete_producer(self, key):
-        """Delete the given key from the cache"""
+        """
+        Delete the given key from the cache.
+        """
         try:
             del self.data_store[key]
         except KeyError:
@@ -107,7 +121,9 @@ class DiffCache(object):
         return patch.DataMsg.del_data(key)
 
     def _retran_producer(self, key):
-        """Send a retransmission for the given key"""
+        """
+        Send a retransmission for the given key.
+        """
         if isinstance(key, bytes):
             key = key.decode()
 
@@ -118,13 +134,15 @@ class DiffCache(object):
                 self.key_name, key))
 
     def _update_consumer(self, data_msg):
-        """Update consumer cache with the received data message"""
+        """
+        Update consumer cache with the received data message.
+        """
         cmd = data_msg.cmd
         key = data_msg.key
         data = data_msg.data
         checksum = data_msg.checksum
 
-        # self.stats[cmd] += 1
+        self.stats[cmd] += 1
 
         if cmd in (consts._cmd_new_, consts._cmd_ret_):
             # This is a new data object or a retansmission of existing data,

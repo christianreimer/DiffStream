@@ -1,7 +1,7 @@
 """
 Stream server supporting publications and retransmission requests.
 
-Leverages zmq for IPC
+Leverages zmq for IPC.
 """
 
 import asyncio as aio
@@ -15,7 +15,9 @@ from stream import protocol
 
 
 def initialize_zmq(pubsub_port, reqres_port):
-    """Setup zmq and required ports"""
+    """
+    Setup zmq and required ports.
+    """
     zmq.asyncio.install()
     ctx = zmq.asyncio.Context()
     sock_pub = ctx.socket(zmq.PUB)
@@ -66,24 +68,31 @@ async def cleanup():
         task.cancel()
 
 
-async def run(sock_pub, sock_rep, dc, topic_string):
+async def run(sock_pub, sock_rep, dc, topic, auctions, sleep_sec, count):
     """
     Run the server.
     """
     auction_lst = []
-    for _ in range(4):
+    for _ in range(auctions):
         auction_lst.append(data.auction_generator())
 
-    while True:
+    while count > 0:
+        await aio.sleep(sleep_sec)
         auction = random.choice(auction_lst)
         auction_update = auction.__next__()
-        print('Auction Update: {}'.format(auction_update))
+        # print('Auction Update: {}'.format(auction_update))
         msg = dc.update(auction_update)
-        await publish(sock_pub, topic_string, '', msg)
-        await aio.sleep(1)
+        print(msg)
+        await publish(sock_pub, topic, '', msg)
+        count -= 1
+
+    print('Done sending out updates')
+    await cleanup()
 
 
-def start(pubsub_port, reqres_port, topic_string):
+def start(pubsub_port, reqres_port, topic_string, args=None):
+    args = args or {}
+
     print('Initializing zmq connection')
 
     ctx, sock_pub, sock_rep = initialize_zmq(pubsub_port, reqres_port)
@@ -94,8 +103,24 @@ def start(pubsub_port, reqres_port, topic_string):
     dc = cache.DiffCache.producer(key_name='key')
 
     try:
+        auctions = int(args['--auctions'])
+    except (KeyError, ValueError):
+        auctions = 1
+
+    try:
+        sleep_sec = float(args['--sleep'])
+    except (KeyError, ValueError):
+        sleep_sec = 1
+
+    try:
+        count = int(args['--count'])
+    except (KeyError, ValueError):
+        count = 3
+
+    try:
         loop.create_task(process_retran_request(sock_pub, sock_rep, dc))
-        loop.run_until_complete(run(sock_pub, sock_rep, dc, topic_string))
+        loop.run_until_complete(run(
+            sock_pub, sock_rep, dc, topic_string, auctions, sleep_sec, count))
     except KeyboardInterrupt:
         loop.run_until_complete(cleanup())
 

@@ -23,7 +23,7 @@ receiver to operate as if the entire dict is sent with every message.
 
 Example:
 
->>> from diffstream import cache
+>>> from cache import cache
 >>>
 >>> producer = cache.DiffCache.producer()
 >>> consumer = cache.DiffCache.consumer()

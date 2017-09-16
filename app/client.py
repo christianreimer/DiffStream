@@ -8,6 +8,7 @@ import asyncio as aio
 import zmq
 import zmq.asyncio
 import uuid
+import random
 from cache import consts
 from cache import cache
 from cache import patch
@@ -15,7 +16,9 @@ from stream import protocol
 
 
 def initialize_zmq(server_addr, pubsub_port, reqres_port):
-    """Setup zmq and required ports"""
+    """
+    Setup zmq and required ports.
+    """
     zmq.asyncio.install()
     ctx = zmq.asyncio.Context()
     sock_sub = ctx.socket(zmq.SUB)
@@ -26,14 +29,18 @@ def initialize_zmq(server_addr, pubsub_port, reqres_port):
 
 
 def subscribe(sock, topicfilter):
-    """Subscribe to the publisher for the given topic"""
-    print('Subscribing using filter: {}'.format(topicfilter))
+    """
+    Subscribe to the publisher for the given topics.
+    """
     for topic in topicfilter:
+        print('Subscribing to topic: {}'.format(topic))
         sock.setsockopt(zmq.SUBSCRIBE, topic.encode())
 
 
 async def request_retrans(sock, my_unique_id, key):
-    """Send request to server to retransmit the specified key"""
+    """
+    Send request to server to retransmit the specified key.
+    """
     request = protocol.ReqResMsg.retran(my_unique_id, key)
     print('Requesting: {}'.format(request))
     await sock.send_multipart(request.to_network())
@@ -43,7 +50,9 @@ async def request_retrans(sock, my_unique_id, key):
 
 
 async def process_msg(msg, dc):
-    """Process a message received on the subscription interface"""
+    """
+    Process a message received on the subscription interface.
+    """
     msg = patch.DataMsg.from_json(msg)
     # print('Received msg: {}'.format(msg))
 
@@ -51,20 +60,26 @@ async def process_msg(msg, dc):
         cmd, key, data = dc.update(msg)
     except Exception as e:
         print('ValueError: {}'.format(e))
-        print('Requesting a retransmission ....')
+        print('Requesting a retransmission ...')
         return False, msg.key
 
-    print('Hydrated: {}'.format(data))
+    # print('Hydrated: {}'.format(data))
     return True, msg.key
 
 
 async def cleanup():
+    """
+    Clean up event loop to prepare for exit.
+    """
     print('Canceling outstanding tasks')
     for task in aio.Task.all_tasks():
         task.cancel()
 
 
-async def run(sock_sub, sock_req, my_unique_id):
+async def run(sock_sub, sock_req, my_unique_id, fuzz):
+    """
+    Run the client.
+    """
     dc = cache.DiffCache.consumer()
 
     while True:
@@ -73,11 +88,12 @@ async def run(sock_sub, sock_req, my_unique_id):
         # print('Received {}'.format(msg))
 
         success, key = await process_msg(msg.payload, dc)
-        if not success:
+        # Insert artificial dataloss (using the fuzz factor)
+        if not success or random.random() < fuzz:
             await request_retrans(sock_req, my_unique_id, key)
 
 
-def start(host_addr, pubsub_port, reqres_port, topic_string):
+def start(host_addr, pubsub_port, reqres_port, topic_string, fuzz):
     print('Connecting to server on {}'.format(host_addr))
 
     ctx, sock_sub, sock_req = initialize_zmq(
@@ -90,7 +106,7 @@ def start(host_addr, pubsub_port, reqres_port, topic_string):
 
     try:
         aio.get_event_loop().run_until_complete(
-            run(sock_sub, sock_req, my_unique_id))
+            run(sock_sub, sock_req, my_unique_id, fuzz))
     except KeyboardInterrupt:
         aio.get_event_loop().run_until_complete(cleanup())
 
