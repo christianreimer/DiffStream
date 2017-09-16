@@ -8,6 +8,7 @@ import asyncio as aio
 import zmq
 import zmq.asyncio
 import uuid
+import signal
 from cache import consts
 from cache import cache
 from cache import patch
@@ -58,12 +59,6 @@ async def process_msg(msg, dc):
     return True, msg.key
 
 
-async def cleanup():
-    print('Canceling outstanding tasks')
-    for task in aio.Task.all_tasks():
-        task.cancel()
-
-
 async def run(sock_sub, sock_req, my_unique_id):
     dc = cache.DiffCache.consumer()
 
@@ -77,6 +72,12 @@ async def run(sock_sub, sock_req, my_unique_id):
             await request_retrans(sock_req, my_unique_id, key)
 
 
+def cleanup():
+    print('Canceling outstanding tasks')
+    for task in aio.Task.all_tasks():
+        task.cancel()
+
+
 def start(host_addr, pubsub_port, reqres_port, topic_string):
     print('Connecting to server on {}'.format(host_addr))
 
@@ -86,16 +87,17 @@ def start(host_addr, pubsub_port, reqres_port, topic_string):
     my_unique_id = uuid.uuid4().hex
     subscribe(sock_sub, (topic_string, my_unique_id))
 
+    loop = aio.get_event_loop()
+    loop.add_signal_handler(signal.SIGINT, cleanup)
+
     print('Ctrl+C to exit')
 
     try:
-        aio.get_event_loop().run_until_complete(
-            run(sock_sub, sock_req, my_unique_id))
-    except KeyboardInterrupt:
-        aio.get_event_loop().run_until_complete(cleanup())
-
-    print('Closing zmq connection')
-    sock_sub.close()
-    sock_req.close()
-    ctx.term()
-    aio.get_event_loop().close()
+        loop.run_until_complete(run(sock_sub, sock_req, my_unique_id))
+    except aio.CancelledError:
+        print('Closing zmq connection')
+        sock_sub.close()
+        sock_req.close()
+        ctx.term()
+    finally:
+        loop.close()
