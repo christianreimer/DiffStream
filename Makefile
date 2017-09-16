@@ -17,5 +17,5 @@ clean:
 
 install:
 	pip install -r requirements.txt
-	pip install -r requirements_text.txt
+	pip install -r requirements_test.txt
 	pip install -r requirements_app.txt
