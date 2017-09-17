@@ -36,13 +36,17 @@ if __name__ == '__main__':
     args = docopt(__doc__)
     # print(args)
 
+    addr = args['--addr']
     topic = args['--topic']
     pubsub = int(args['--pubsub'])
     reqres = int(args['--reqres'])
-    fuzz = float(args['--fuzz'])
 
     if args['client']:
-        client.start(args['--addr'], pubsub, reqres, topic, fuzz)
+        client.start(addr, pubsub, reqres, topic,
+                     fuzz=float(args['--fuzz']))
 
     elif args['server']:
-        server.start(pubsub, reqres, topic, args=args)
+        server.start(pubsub, reqres, topic,
+                     sleep=float(args['--sleep']),
+                     auctions=int(args['--auctions']),
+                     count=int(args['--count']))

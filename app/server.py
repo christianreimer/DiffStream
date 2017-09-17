@@ -88,9 +88,7 @@ def cleanup():
         task.cancel()
 
 
-def start(pubsub_port, reqres_port, topic_string, args=None):
-    args = args or {}
-
+def start(pubsub_port, reqres_port, topic_string, **kwargs):
     print('Initializing zmq connection')
 
     ctx, sock_pub, sock_rep = initialize_zmq(pubsub_port, reqres_port)
@@ -101,20 +99,9 @@ def start(pubsub_port, reqres_port, topic_string, args=None):
     loop = aio.get_event_loop()
     loop.add_signal_handler(signal.SIGINT, cleanup)
 
-    try:
-        auctions = int(args['--auctions'])
-    except (KeyError, ValueError):
-        auctions = 1
-
-    try:
-        sleep_sec = float(args['--sleep'])
-    except (KeyError, ValueError):
-        sleep_sec = 1
-
-    try:
-        count = int(args['--count'])
-    except (KeyError, ValueError):
-        count = 3
+    auctions = kwargs.get('auctions', 1)
+    sleep_sec = kwargs.get('sleep', 1)
+    count = kwargs.get('count', 3)
 
     try:
         loop.run_until_complete(

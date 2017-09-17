@@ -94,8 +94,10 @@ async def run(sock_sub, sock_req, my_unique_id, fuzz):
             await request_retrans(sock_req, my_unique_id, key)
 
 
-def start(host_addr, pubsub_port, reqres_port, topic_string, fuzz):
+def start(host_addr, pubsub_port, reqres_port, topic_string, **kwargs):
     print('Connecting to server on {}'.format(host_addr))
+
+    fuzz = kwargs.get('fuzz', 0.0)
 
     ctx, sock_sub, sock_req = initialize_zmq(
         host_addr, pubsub_port, reqres_port)
