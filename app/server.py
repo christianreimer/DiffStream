@@ -13,6 +13,7 @@ from . import data
 from cache import cache
 from cache import consts
 from stream import protocol
+from stream import stats
 
 
 def initialize_zmq(pubsub_port, reqres_port):
@@ -33,10 +34,12 @@ async def publish(sock_pub, topic, corr_id, msg):
     Publish msg using the given topic string
     """
     pub_msg = protocol.PubSubMsg(topic, corr_id, msg)
-    await sock_pub.send_multipart(pub_msg.to_network())
+    pub_msg = pub_msg.to_network()
+    await sock_pub.send_multipart(pub_msg)
+    return len(pub_msg[2])  # Only count the payload
 
 
-async def process_retran_request(sock_pub, sock_rep, dc):
+async def process_retran_request(sock_pub, sock_rep, dc, stat):
     """
     Listen for retransmission requests on the request socket, and initiate
     republish events using the requesters specific topic string.
@@ -57,11 +60,12 @@ async def process_retran_request(sock_pub, sock_rep, dc):
             print('Responding: {}'.format(response))
 
             msg = dc.retran(request.key)
-            await publish(
+            bytes_sent = await publish(
                 sock_pub, request.unique_id, request.corr_id, msg)
+            stat.transmitted(bytes_sent, dc[request.key], msg.cmd, request.key)
 
 
-async def run(sock_pub, sock_rep, dc, topic, auctions, sleep_sec, count):
+async def run(sock_pub, sock_rep, dc, topic, auctions, sleep_sec, count, stat):
     """
     Run the server.
     """
@@ -73,10 +77,10 @@ async def run(sock_pub, sock_rep, dc, topic, auctions, sleep_sec, count):
         await aio.sleep(sleep_sec)
         auction = random.choice(auction_lst)
         auction_update = auction.__next__()
-        # print('Auction Update: {}'.format(auction_update))
         msg = dc.update(auction_update)
         print(msg)
-        await publish(sock_pub, topic, '', msg)
+        bytes_sent = await publish(sock_pub, topic, '', msg)
+        stat.transmitted(bytes_sent, dc[msg.key], msg.cmd, msg.key)
         count -= 1
 
     print('Done sending out updates, Ctrl+C to exit')
@@ -103,11 +107,15 @@ def start(pubsub_port, reqres_port, topic_string, **kwargs):
     sleep_sec = kwargs.get('sleep', 1)
     count = kwargs.get('count', 3)
 
+    stat = stats.UtilizationStats(track_bytes=True,
+                                  track_keys=True,
+                                  track_messages=True)
+
     try:
         loop.run_until_complete(
-            aio.wait((process_retran_request(sock_pub, sock_rep, dc),
+            aio.wait((process_retran_request(sock_pub, sock_rep, dc, stat),
                       run(sock_pub, sock_rep, dc, topic_string,
-                          auctions, sleep_sec, count))))
+                          auctions, sleep_sec, count, stat))))
     except aio.CancelledError:
         print('Closing zmq connection')
         sock_pub.close()
@@ -115,3 +123,6 @@ def start(pubsub_port, reqres_port, topic_string, **kwargs):
         ctx.term()
     finally:
         loop.close()
+
+    print('Utilization Stats')
+    print(stat)

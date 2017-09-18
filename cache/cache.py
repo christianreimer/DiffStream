@@ -60,6 +60,9 @@ class DiffCache(object):
     def __getitem__(self, key):
         return self.data_store[key]
 
+    def get(self, key, default_value):
+        return self.data_store.get(key, default_value)
+
     def __contains__(self, key):
         return key in self.data_store
 

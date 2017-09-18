@@ -14,6 +14,7 @@ from cache import consts
 from cache import cache
 from cache import patch
 from stream import protocol
+from stream import stats
 
 
 def initialize_zmq(server_addr, pubsub_port, reqres_port):
@@ -62,10 +63,10 @@ async def process_msg(msg, dc):
     except Exception as e:
         print('ValueError: {}'.format(e))
         print('Requesting a retransmission ...')
-        return False, msg.key
+        return False, msg.key, None
 
     # print('Hydrated: {}'.format(data))
-    return True, msg.key
+    return True, msg.key, cmd
 
 
 def cleanup():
@@ -77,7 +78,7 @@ def cleanup():
         task.cancel()
 
 
-async def run(sock_sub, sock_req, my_unique_id, fuzz):
+async def run(sock_sub, sock_req, my_unique_id, fuzz, stat):
     """
     Run the client.
     """
@@ -88,8 +89,10 @@ async def run(sock_sub, sock_req, my_unique_id, fuzz):
         msg = protocol.PubSubMsg.from_network(buf)
         # print('Received {}'.format(msg))
 
-        success, key = await process_msg(msg.payload, dc)
+        success, key, cmd = await process_msg(msg.payload, dc)
         # Insert artificial dataloss (using the fuzz factor)
+        stat.transmitted(len(buf[2]), dc.get(key, None), cmd, key)
+
         if not success or random.random() < fuzz:
             await request_retrans(sock_req, my_unique_id, key)
 
@@ -110,9 +113,13 @@ def start(host_addr, pubsub_port, reqres_port, topic_string, **kwargs):
 
     print('Ctrl+C to exit')
 
+    stat = stats.UtilizationStats(track_bytes=True,
+                                  track_keys=True,
+                                  track_messages=True)
+
     try:
         aio.get_event_loop().run_until_complete(
-            run(sock_sub, sock_req, my_unique_id, fuzz))
+            run(sock_sub, sock_req, my_unique_id, fuzz, stat))
     except aio.CancelledError:
         print('Closing zmq connection')
         sock_sub.close()
@@ -120,3 +127,7 @@ def start(host_addr, pubsub_port, reqres_port, topic_string, **kwargs):
         ctx.term()
     finally:
         loop.close()
+
+    print('Utilization Stats')
+    print(stat)
+
