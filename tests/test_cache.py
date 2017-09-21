@@ -118,6 +118,10 @@ def test_dict_likeness_getattr():
     assert (data['key'] == data2['key'] and
             data['a'] == data2['a'])
 
+def test_dict_likeness_get():
+    producer, _ = create_caches()
+    assert not producer.get('NonExistingKey', None)
+
 
 def test_checksum_mismatch_exception():
     producer, consumer = create_caches()

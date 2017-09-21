@@ -21,9 +21,8 @@ class UtilizationStats(object):
         self.unique_keys = set()
 
     def __str__(self):
-        return '\n'.join(
-            ['Tracking {} {} {}'.format(self.track_bytes, self.track_messages, self.track_keys),
-             'Bytes Xmited:   {}'.format(self.bytes_xmited),
+        return '\n'.join(  # pragma: no cover
+            ['Bytes Xmited:   {}'.format(self.bytes_xmited),
              'Bytes original: {}'.format(self.bytes_original),
              'Num Messages:   {}'.format(self.num_messages),
              'Message Types:  {}'.format(self.messages_types),
