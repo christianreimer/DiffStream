@@ -11,13 +11,13 @@ keep it in sync with the server.
 
 
 Usage:
-  diff_stream.py server|client [--pubsub=p] [--reqres=p] [--topic=t]
-  diff_stream.py client [--addr=a] [--fuzz=f]
-  diff_stream.py server [--sleep=s] [--auctions=c] [--count=c]
+  diff_stream.py server [--pubsub=p] [--reqres=p] [--topic=t] [--fname=f] [--sleep=s] [--auctions=c] [--count=c]
+  diff_stream.py client [--pubsub=p] [--reqres=p] [--topic=t] [--fname=f] [--addr=a] [--fuzz=f]
 
 Options:
   --pubsub=p    Port # for pub sub communication [default: 5556]
   --reqres=p    Port # for req res communication [default: 5557]
+  --fname=f     Filename to save stats pickle to [default: ]
   --topic=t     Pubsub topic [default: _a_topic_]
   --addr=a      Address where the server is running [default: localhost]
   --fuzz=f      Failure rate [default: 0.05]
@@ -34,19 +34,22 @@ from app import server
 
 if __name__ == '__main__':
     args = docopt(__doc__)
-    # print(args)
+    print(args)
 
     addr = args['--addr']
     topic = args['--topic']
     pubsub = int(args['--pubsub'])
     reqres = int(args['--reqres'])
+    fname = args['--fname'] or None
 
     if args['client']:
         client.start(addr, pubsub, reqres, topic,
-                     fuzz=float(args['--fuzz']))
+                     fuzz=float(args['--fuzz']),
+                     fname=fname)
 
     elif args['server']:
         server.start(pubsub, reqres, topic,
                      sleep=float(args['--sleep']),
                      auctions=int(args['--auctions']),
-                     count=int(args['--count']))
+                     count=int(args['--count']),
+                     fname=fname)

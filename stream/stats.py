@@ -45,7 +45,3 @@ class UtilizationStats(object):
                 (self.stats['num_messages'] % self.report_interval):
             return
         self.stats_lst.append(copy.deepcopy(self.stats))
-
-    def report(self):
-        return self.stats_lst
-

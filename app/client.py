@@ -10,6 +10,7 @@ import zmq.asyncio
 import uuid
 import random
 import signal
+import pickle
 from cache import consts
 from cache import cache
 from cache import patch
@@ -101,6 +102,7 @@ def start(host_addr, pubsub_port, reqres_port, topic_string, **kwargs):
     print('Connecting to server on {}'.format(host_addr))
 
     fuzz = kwargs.get('fuzz', 0.0)
+    fname = kwargs.get('fname', None)
 
     ctx, sock_sub, sock_req = initialize_zmq(
         host_addr, pubsub_port, reqres_port)
@@ -115,7 +117,8 @@ def start(host_addr, pubsub_port, reqres_port, topic_string, **kwargs):
 
     stat = stats.UtilizationStats(track_bytes=True,
                                   track_keys=True,
-                                  track_messages=True)
+                                  track_messages=True,
+                                  report_interval=100)
 
     try:
         aio.get_event_loop().run_until_complete(
@@ -128,6 +131,7 @@ def start(host_addr, pubsub_port, reqres_port, topic_string, **kwargs):
     finally:
         loop.close()
 
-    print('Utilization Stats')
-    print(stat)
-
+    if fname:
+        with open(fname, 'wb') as p_file:
+            pickle.dump(stat.stats_lst, p_file)
+            print('Stats written to {}'.format(fname))

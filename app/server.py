@@ -9,6 +9,7 @@ import zmq
 import zmq.asyncio
 import random
 import signal
+import pickle
 from . import data
 from cache import cache
 from cache import consts
@@ -106,10 +107,12 @@ def start(pubsub_port, reqres_port, topic_string, **kwargs):
     auctions = kwargs.get('auctions', 1)
     sleep_sec = kwargs.get('sleep', 1)
     count = kwargs.get('count', 3)
+    fname = kwargs.get('fname', None)
 
     stat = stats.UtilizationStats(track_bytes=True,
                                   track_keys=True,
-                                  track_messages=True)
+                                  track_messages=True,
+                                  report_interval=100)
 
     try:
         loop.run_until_complete(
@@ -124,5 +127,7 @@ def start(pubsub_port, reqres_port, topic_string, **kwargs):
     finally:
         loop.close()
 
-    print('Utilization Stats')
-    print(stat)
+    if fname:
+        with open(fname, 'wb') as p_file:
+            pickle.dump(stat.stats_lst, p_file)
+            print('Stats written to {}'.format(fname))
