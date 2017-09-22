@@ -42,6 +42,5 @@ def test_keys():
 def test_dummy_report():
     s = stats.UtilizationStats(track_keys=True, report_interval=1)
     s.transmitted(0, '')
-    r = s.report()
-    assert isinstance(r, list)
+    assert isinstance(s.stats_lst, list)
 
