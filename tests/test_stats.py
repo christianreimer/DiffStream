@@ -6,11 +6,11 @@ import json
 def test_track_nothing_empty():
     s = stats.UtilizationStats()
     s.transmitted(123, 'Something')
-    assert not s.bytes_xmited
-    assert not s.bytes_original
-    assert not s.num_messages
-    assert not s.messages_types
-    assert not s.unique_keys
+    assert s.stats['num_messages']
+    assert not s.stats['bytes_xmited']
+    assert not s.stats['bytes_original']
+    assert not s.stats['messages_types']
+    assert not s.stats['unique_keys']
 
 
 def test_transmitted():
@@ -18,16 +18,17 @@ def test_transmitted():
     data = {'a': 1, 'b': 'Hello'}
     s.transmitted(123, data)
     s.transmitted(234, data)
-    assert s.bytes_xmited == (123 + 234)
-    assert s.bytes_original == 2 * len(json.dumps(data).encode())
+    assert s.stats['bytes_xmited'] == (123 + 234)
+    assert s.stats['bytes_original'] == 2 * len(json.dumps(data).encode())
 
 
 def test_messages():
     s = stats.UtilizationStats(track_messages=True)
     s.transmitted(0, '', cmd='SomeCommand')
     s.transmitted(0, '', cmd='SomeCommand')
-    assert s.num_messages == 2
-    assert not set(s.messages_types.items()) - set([('SomeCommand', 2)])
+    assert s.stats['num_messages'] == 2
+    assert not set(s.stats['messages_types'].items()) - \
+        set([('SomeCommand', 2)])
 
 
 def test_keys():
@@ -35,4 +36,12 @@ def test_keys():
     s.transmitted(0, '', '', 314159)
     s.transmitted(0, '', '', 314159)
     s.transmitted(0, '', '', 271828)
-    assert len(s.unique_keys) == 2
+    assert len(s.stats['unique_keys']) == 2
+
+
+def test_dummy_report():
+    s = stats.UtilizationStats(track_keys=True, report_interval=1)
+    s.transmitted(0, '')
+    r = s.report()
+    assert isinstance(r, list)
+
