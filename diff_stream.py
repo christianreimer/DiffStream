@@ -11,20 +11,20 @@ keep it in sync with the server.
 
 
 Usage:
-  diff_stream.py server [--pubsub=p] [--reqres=p] [--topic=t] [--fname=f] [--sleep=s] [--auctions=c] [--count=c]
-  diff_stream.py client [--pubsub=p] [--reqres=p] [--topic=t] [--fname=f] [--addr=a] [--fuzz=f]
+  diff_stream.py server [-p=p -r=p -t=t -n=f -s=s -u=a -c=c]
+  diff_stream.py client [-p=p -r=p -t=t -n=f -a=a -f=f]
 
 Options:
-  --pubsub=p    Port # for pub sub communication [default: 5556]
-  --reqres=p    Port # for req res communication [default: 5557]
-  --fname=f     Filename to save stats pickle to [default: ]
-  --topic=t     Pubsub topic [default: _a_topic_]
-  --addr=a      Address where the server is running [default: localhost]
-  --fuzz=f      Failure rate [default: 0.05]
-  --sleep=s     Sleep between published messages (in sec) [default: 1]
-  --auctions=a  Number of auction items being run [default: 1]
-  --count=c     Number of messages generated [default: 100]
-  --help        Show this message
+  -p=p --pubsub=p    Port # for pub sub communication [default: 5556]
+  -r=r --reqres=p    Port # for req res communication [default: 5557]
+  -t=t --topic=t     Pubsub topic [default: _a_topic_]
+  -n=f --fname=f     Filename to save stats pickle to [default: ]
+  -s=s --sleep=s     Sleep between published messages (in sec) [default: 1]
+  -u=a --auctions=a  Number of auction items being run [default: 1]
+  -c=c --count=c     Number of messages generated [default: 100]
+  -a=a --addr=a      Address where the server is running [default: localhost]
+  -f=f --fuzz=f      Failure rate [default: 0.05]
+  -h   --help        Show this message
 """
 
 from docopt import docopt
