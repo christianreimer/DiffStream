@@ -1,7 +1,7 @@
 # coverage==4.4.1
 jsonpatch==1.16
 jsonpointer==1.10
-py==1.4.34
+py==1.10.0
 Pympler==0.5
 pytest==3.2.0
 pytest-cov==2.5.1
